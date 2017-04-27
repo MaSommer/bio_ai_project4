@@ -5,24 +5,22 @@ import java.util.ArrayList;
 
 import javafx.util.converter.PercentageStringConverter;
 
-public class Program {
+public class PSO {
 	
 	private ArrayList<Particle> sworm;
 	private Particle globalBestParticle;
 	public static DataInput di;
 	private String filename;
 	
-	public Program(String filename){
+	public PSO(String filename){
 		this.filename = filename;
 		init();
 		run();
-//		ArrayList<ArrayList<Integer>> chart = HelpMethods.encodeJobs(sworm.get(0));
-//		new DrawGanttChart(chart);
 	}
 	
 	public void init(){
 		di = new DataInput(filename);
-		sworm = PSOMethods.generateSworm();
+		sworm = HelpMethods.generateSworm(di);
 	}
 	
 	public void run(){
@@ -44,7 +42,7 @@ public class Program {
 	}
 	
 	public static void main(String[] args) {
-		new Program("3.txt");
+		new PSO("5.txt");
 	}
 
 }

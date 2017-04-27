@@ -1,9 +1,9 @@
 package jssp;
 
-public class Variables {
+public class VariablesPSO {
 	
 	//PSO Variables
-	public static int swormSize = 500;
+	public static int swormSize = 30;
 	public static double minPosition = 0;
 	public static double maxPosition = 2;
 	public static double minVelocity = -2;

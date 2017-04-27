@@ -25,7 +25,7 @@ public class DrawGanttChart extends JFrame {
 
 
     public DrawGanttChart(ArrayList<ArrayList<Integer>> chart) {
-    	int noOfMachines = Program.di.getNoOfMachines();
+    	int noOfMachines = PSO.di.getNoOfMachines();
     	this.height = noOfMachines;
     	this.width = findMaxlength(chart);
     	this.scaleWidth = 800/width;
