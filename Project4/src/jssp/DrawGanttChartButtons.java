@@ -25,7 +25,7 @@ public class DrawGanttChartButtons extends JFrame{
 		super("GanttChart");
 		this.chart = chart;
 		this.height = noOfMachines;
-		this.width = findMaxlength(chart);
+		this.width = HelpMethods.findMaxlengthOfGanttChart(chart);
 		setSize(1200,750);
 		setResizable(false);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -83,16 +83,6 @@ public class DrawGanttChartButtons extends JFrame{
 			}	
 		}
 		return buttons;
-	}
-	
-	public int findMaxlength(ArrayList<ArrayList<Integer>> chart){
-		int max = -Integer.MAX_VALUE;
-		for (int i = 0; i < chart.size(); i++) {
-			if (chart.get(i).size() > max){
-				max = chart.get(i).size();
-			}
-		}
-		return max;
 	}
 	
 	
