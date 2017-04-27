@@ -53,7 +53,7 @@ public class HelpMethods {
 		return gantChart;
 	}
 	
-	public static boolean checkIfSubtaskFitsInAlreadyBlankSpotAndPlaceInIfItFits(int durationOfSubTask, int durationSpentOnJob, ArrayList<Integer> machine, int subtask, int[] durationSpentOnEachJob){
+	private static boolean checkIfSubtaskFitsInAlreadyBlankSpotAndPlaceInIfItFits(int durationOfSubTask, int durationSpentOnJob, ArrayList<Integer> machine, int subtask, int[] durationSpentOnEachJob){
 		int duration = 0;
 		for (int i = durationSpentOnJob; i < machine.size(); i++) {
 			if (machine.get(i) == -1){
@@ -89,9 +89,9 @@ public class HelpMethods {
 		Particle bestParticle = null;
 		int bestFitness = -Integer.MAX_VALUE;
 		for (Particle particle : sworm) {
-			if (particle.getFitnessValue() > bestFitness){
+			if (particle.getLocalBestFitnessValue() > bestFitness){
 				bestParticle = particle;
-				bestFitness = particle.getFitnessValue();
+				bestFitness = particle.getLocalBestFitnessValue();
 			}
 		}
 		return bestParticle;
@@ -100,8 +100,8 @@ public class HelpMethods {
 	public static int findBestFitnessValue(ArrayList<Particle> sworm){
 		int bestFitness = -Integer.MAX_VALUE;
 		for (Particle particle : sworm) {
-			if (particle.getFitnessValue() > bestFitness){
-				bestFitness = particle.getFitnessValue();
+			if (particle.getLocalBestFitnessValue() > bestFitness){
+				bestFitness = particle.getLocalBestFitnessValue();
 			}
 		}
 		return bestFitness;

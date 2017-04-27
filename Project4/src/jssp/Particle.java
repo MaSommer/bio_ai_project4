@@ -47,6 +47,7 @@ public class Particle {
 	}
 	
 	private void updateSchedule(){
+		//Sorterer listen etter positions, oppdaterer tilsvarende velocities og operationSequence
 		for (int i = 0; i < positions.size(); i++) {
 			for (int j = i; j < positions.size(); j++) {
 				if (positions.get(i) < positions.get(j)){
@@ -84,6 +85,18 @@ public class Particle {
 	
 	public ArrayList<Double> getPositions() {
 		return positions;
+	}
+	
+	public int getLocalBestFitnessValue() {
+		return localBestFitnessValue;
+	}
+
+	public ArrayList<Double> getLocalBestPositions() {
+		return localBestPositions;
+	}
+
+	public ArrayList<Double> getLocalBestSequence() {
+		return localBestSequence;
 	}
 
 }
