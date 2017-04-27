@@ -15,16 +15,18 @@ public class Particle {
 	
 	private ArrayList<Particle> neighbourhood;
 	private ArrayList<Integer> operationSequence;
+	private DataInput di;
 
-	public Particle(ArrayList<Integer> operationSequence){
+	public Particle(ArrayList<Integer> operationSequence, DataInput di){
 		this.operationSequence = operationSequence;
 		this.positions = new ArrayList<Double>();
 		this.velocities = new ArrayList<Double>();
+		this.di = di;
 		this.localBestFitnessValue = Integer.MAX_VALUE;
 		for (int i = 0; i < operationSequence.size(); i++) {
-			double pos = Math.random()*(Variables.maxPosition-Variables.minPosition)-Variables.minPosition;
+			double pos = Math.random()*(VariablesPSO.maxPosition-VariablesPSO.minPosition)-VariablesPSO.minPosition;
 			positions.add(pos);
-			double velocity = Math.random()*(Variables.maxVelocity-Variables.minVelocity)-Variables.minVelocity;
+			double velocity = Math.random()*(VariablesPSO.maxVelocity-VariablesPSO.minVelocity)-VariablesPSO.minVelocity;
 			velocities.add(velocity);
 		}
 		this.localBestPositions = (ArrayList<Double>) positions.clone();
@@ -34,11 +36,11 @@ public class Particle {
 	}
 	
 	public void updateParticle(int iteration, Particle globalBestParticle){
-		double lamda = Math.log(Variables.terminalOmega/Variables.initialOmega)/(-Variables.iterationsUntilOmegaTerminal);
-		double omega = Variables.initialOmega*Math.exp(-lamda*iteration);
+		double lamda = Math.log(VariablesPSO.terminalOmega/VariablesPSO.initialOmega)/(-VariablesPSO.iterationsUntilOmegaTerminal);
+		double omega = VariablesPSO.initialOmega*Math.exp(-lamda*iteration);
 		int index = 0;
 		for (Double velocity : velocities) {
-			velocity = omega*velocity + Variables.c1*Math.random()*(localBestPositions.get(index) - positions.get(index)) + Variables.c2*Math.random()*(globalBestParticle.getPositions().get(index)-positions.get(index));
+			velocity = omega*velocity + VariablesPSO.c1*Math.random()*(localBestPositions.get(index) - positions.get(index)) + VariablesPSO.c2*Math.random()*(globalBestParticle.getPositions().get(index)-positions.get(index));
 			positions.set(index, positions.get(index)+velocity);
 			index++;
 		}
@@ -47,6 +49,7 @@ public class Particle {
 	}
 	
 	private void updateSchedule(){
+		//Sorterer listen etter positions, oppdaterer tilsvarende velocities og operationSequence
 		for (int i = 0; i < positions.size(); i++) {
 			for (int j = i; j < positions.size(); j++) {
 				if (positions.get(i) < positions.get(j)){
@@ -65,7 +68,7 @@ public class Particle {
 	}
 	
 	private void updateFitnessValue(){
-		ArrayList<ArrayList<Integer>> gantChart = HelpMethods.encodeJobs(this);
+		ArrayList<ArrayList<Integer>> gantChart = HelpMethods.encodeJobs(getOperationSequence(), di);
 		fitnessValue = HelpMethods.findMaxlengthOfGanttChart(gantChart);
 		if (fitnessValue < localBestFitnessValue){
 			localBestFitnessValue = fitnessValue;
@@ -84,6 +87,18 @@ public class Particle {
 	
 	public ArrayList<Double> getPositions() {
 		return positions;
+	}
+	
+	public int getLocalBestFitnessValue() {
+		return localBestFitnessValue;
+	}
+
+	public ArrayList<Double> getLocalBestPositions() {
+		return localBestPositions;
+	}
+
+	public ArrayList<Double> getLocalBestSequence() {
+		return localBestSequence;
 	}
 
 }
