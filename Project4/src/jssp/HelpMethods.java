@@ -21,7 +21,7 @@ public class HelpMethods {
 			sworm.add(new Particle(particleSequence, di));
 		}
 		for (Particle particle : sworm) {
-			System.out.println(particle.getOperationSequence());
+			System.out.println("OperationSequence: " +particle.getOperationSequence());
 		}
 		return sworm;
 	}

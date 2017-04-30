@@ -1,9 +1,10 @@
 package jssp;
 
 import java.text.DecimalFormat;
+
 import java.util.ArrayList;
 
-import javafx.util.converter.PercentageStringConverter;
+
 
 public class PSO {
 	

@@ -117,7 +117,9 @@ public class DataInput {
 	}
 	
 	public static void main(String[] args) {
-		DataInput di = new DataInput("1.txt");
+		DataInput di = new DataInput("Project4/1.txt");
+		System.out.println(di.getMachineForEachJob());
+		System.out.println(di.getDurationForEachJob());
 	}
 
 }

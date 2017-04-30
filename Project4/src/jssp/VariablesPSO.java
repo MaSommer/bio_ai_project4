@@ -3,7 +3,7 @@ package jssp;
 public class VariablesPSO {
 	
 	//PSO Variables
-	public static int swormSize = 30;
+	public static int swormSize = 15;
 	public static double minPosition = 0;
 	public static double maxPosition = 2;
 	public static double minVelocity = -2;
@@ -14,6 +14,6 @@ public class VariablesPSO {
 	
 	public static double initialOmega = 0.9;
 	public static double terminalOmega = 0.4;
-	public static double iterationsUntilOmegaTerminal = 100000;
+	public static double iterationsUntilOmegaTerminal = 10000;
 
 }
