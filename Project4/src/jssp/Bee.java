@@ -24,6 +24,7 @@ public class Bee {
 		int randomFoodSourceIndex = (int)(Math.random()*foodSourcesWeights.size());
 		double newWeight = foodSourceWeights.get(randomWeightIndex) + (Math.random()*(VariablesBA.maxRandomNumberEmploedBeePhase-VariablesBA.minRandomNumberEmploedBeePhase)-VariablesBA.minRandomNumberEmploedBeePhase)
 				*(this.foodSourceWeights.get(randomWeightIndex)-foodSourcesWeights.get(randomFoodSourceIndex).get(randomWeightIndex));
+		
 		ArrayList<Double> newFoodSourcesWeights = (ArrayList<Double>) foodSourceWeights.clone();
 		ArrayList<Integer> newFoodSourcesSequence = (ArrayList<Integer>) foodSourceSequence.clone();
 		newFoodSourcesWeights.set(randomWeightIndex, newWeight);
@@ -62,6 +63,14 @@ public class Bee {
 	
 	public int getBestFitnessValue() {
 		return bestFitnessValue;
+	}
+	
+	public void setFoodSourceSequence(ArrayList<Integer> foodSourceSequence) {
+		this.foodSourceSequence = foodSourceSequence;
+	}
+
+	public void setFoodSourceWeights(ArrayList<Double> foodSourceWeights) {
+		this.foodSourceWeights = foodSourceWeights;
 	}
 
 }

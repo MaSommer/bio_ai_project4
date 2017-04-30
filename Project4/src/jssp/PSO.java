@@ -16,6 +16,7 @@ public class PSO {
 		this.filename = filename;
 		init();
 		run();
+
 	}
 	
 	public void init(){
@@ -38,11 +39,13 @@ public class PSO {
 			iterations++;
 		}
 		String percentage = new DecimalFormat("##.##").format(HelpMethods.percentageOfOptimal(filename, sworm));
-		System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");				
+		System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");	
+		ArrayList<ArrayList<Integer>> chart = HelpMethods.encodeJobs(globalBestParticle.getOperationSequence(), di);
+		new DrawGanttChart(chart, di);
 	}
 	
 	public static void main(String[] args) {
-		new PSO("5.txt");
+		new PSO("1.txt");
 	}
 
 }
