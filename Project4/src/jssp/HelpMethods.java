@@ -2,6 +2,8 @@ package jssp;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class HelpMethods {
 	
@@ -246,6 +248,134 @@ public class HelpMethods {
 			probabilities[i] += probabilities[i-1];
 		}
 		return probabilities;
+	}
+	
+	public static void takeOutRandomSubtaskAndPlaceItInAtBestFeasible(Bee bee, DataInput di){
+		ArrayList<Integer> operationSequence = bee.getFoodSourceSequence();
+		int randomSubtask = (int)(Math.random()*operationSequence.size());
+		int subtask = operationSequence.get(randomSubtask);
+		operationSequence.remove(randomSubtask);
+		int bestFeasibleFitness = Integer.MAX_VALUE;
+		int bestInsertion = -1;
+		for (int i = 0; i < operationSequence.size(); i++) {
+			operationSequence.add(i, subtask);
+			int fitness = calculateFitnessValue(operationSequence, di);
+			if (fitness < bestFeasibleFitness){
+				bestInsertion = i;
+				bestFeasibleFitness = fitness;
+			}
+			operationSequence.remove(i);
+		}
+		operationSequence.add(bestInsertion, subtask);
+	}
+	
+	public static void takeOutBestSubtaskAndPlaceItInAtBestFeasible(Bee bee, DataInput di){
+		ArrayList<Integer> operationSequence = bee.getFoodSourceSequence();
+		boolean[] checkedSubtask = new boolean[di.getNoOfJobs()];
+		for (int i = 0; i < checkedSubtask.length; i++) {
+			checkedSubtask[i] = false;
+		}
+		int bestFeasibleFitness = Integer.MAX_VALUE;
+		int bestInsertionIndex = -1;
+		int indexToRemove = -1;
+		int bestSubtask = -1;
+		for (int j = 0; j < checkedSubtask.length; j++) {
+			int index = 0;
+			for (int i = 0; i < operationSequence.size(); i++) {
+				if (operationSequence.get(i) == (j+1)){
+					index = i;
+					break;
+				}
+			}
+			int subtask = j+1;
+			operationSequence.remove(index);
+			for (int i = 0; i < operationSequence.size(); i++) {
+				operationSequence.add(i, subtask);
+				int fitness = calculateFitnessValue(operationSequence, di);
+				if (fitness < bestFeasibleFitness){
+					bestInsertionIndex = i;
+					bestFeasibleFitness = fitness;
+					indexToRemove = index;
+					bestSubtask = subtask;
+				}
+				operationSequence.remove(i);
+			}
+			operationSequence.add(index, subtask);			
+		}
+		operationSequence.remove(indexToRemove);
+		operationSequence.add(bestInsertionIndex, bestSubtask);
+	}
+	
+	public static ArrayList<Integer> treeSearchImprovedBeesAlgorithm(ArrayList<Integer> originalOpSeq, DataInput di){
+		int l = 1;
+		Queue<ArrayList<Integer>> queue = new LinkedList<ArrayList<Integer>>();
+		ArrayList<Integer> bestOpSeq = (ArrayList<Integer>) originalOpSeq.clone();
+		int bestFitness = calculateFitnessValue(bestOpSeq, di);
+		for (int i = 0; i < VariablesBA.numberOfDifferentLocationsCriticalBox; i++) {
+			ArrayList<Integer> opSeq = (ArrayList<Integer>) originalOpSeq.clone();
+			swapTwoSubtasks(opSeq);
+			queue.add(opSeq);
+			int fitness = calculateFitnessValue(opSeq, di);
+			if (fitness < bestFitness){
+				bestOpSeq = opSeq;
+				bestFitness = fitness;
+			}
+		}
+		while (l < VariablesBA.numberOfLevelsTreeSearch){
+			Queue<ArrayList<Integer>> newQueue = treeSearchLoop(queue, di);
+			for (ArrayList<Integer> opSeq : newQueue) {
+				int fitness = calculateFitnessValue(opSeq, di);
+				if (fitness < bestFitness){
+					bestOpSeq = opSeq;
+					bestFitness = fitness;
+				}
+			}
+			l++;
+		}
+		return bestOpSeq;
+	}
+	
+	private static Queue<ArrayList<Integer>> treeSearchLoop(Queue<ArrayList<Integer>> queue, DataInput di){
+		for (int i = 0; i < VariablesBA.numberOfDifferentLocationsCriticalBox; i++) {
+			ArrayList<Integer> opsSeq = queue.poll();
+			for (int j = 0; j < VariablesBA.numberOfTraialsForEachSolution; j++) {
+				ArrayList<Integer> newOpSeq = (ArrayList<Integer>) opsSeq.clone();
+				swapTwoSubtasks(newOpSeq);
+				queue.add(newOpSeq);
+			}
+		}
+		Queue<ArrayList<Integer>> newQueue = new LinkedList<ArrayList<Integer>>();
+		int worstOpSeqFitness = -Integer.MAX_VALUE;
+		ArrayList<Integer> worstOpSeq = null;
+		for (ArrayList<Integer> opSeq : queue) {
+			int fitness = calculateFitnessValue(opSeq, di);
+			if (newQueue.size() < VariablesBA.numberOfDifferentLocationsCriticalBox){
+				newQueue.add(opSeq);
+				if (fitness > worstOpSeqFitness){
+					worstOpSeqFitness = fitness;
+					worstOpSeq = opSeq;
+				}
+				continue;
+			}
+			else if (fitness < worstOpSeqFitness){
+				newQueue.remove(worstOpSeq);
+				worstOpSeq = opSeq;
+				worstOpSeqFitness = fitness;
+				newQueue.add(opSeq);
+			}
+		}
+		return newQueue;
+	}
+	
+	public static void swapTwoSubtasks(ArrayList<Integer> opSeq){
+		int randomSwapIndex1 = (int)(Math.random()*opSeq.size());
+		int randomSwapIndex2 = (int)(Math.random()*opSeq.size());
+		while (randomSwapIndex1 == randomSwapIndex2){
+			randomSwapIndex2 = (int)(Math.random()*opSeq.size());
+		}
+		int tempValue = opSeq.get(randomSwapIndex1);
+		opSeq.set(randomSwapIndex1, opSeq.get(randomSwapIndex2));
+		opSeq.set(randomSwapIndex2, tempValue);
 	}
 		
 
