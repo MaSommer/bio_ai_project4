@@ -36,7 +36,6 @@ public class DrawGanttChart extends JFrame {
     	while (height*scaleHeight > 800){
     		scaleHeight = scaleHeight/2;
     	}
-    	System.out.println(scaleHeight);
     	this.chart = chart;
         this.setPreferredSize(new Dimension(height*scaleHeight, width*scaleWidth));
         this.pack();
@@ -76,26 +75,30 @@ public class DrawGanttChart extends JFrame {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-
-        // define the position
-        for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				if (i < chart.size() && j < chart.get(i).size() && chart.get(i).get(j) != -1){
-					Color c = colorList.get(chart.get(i).get(j));
-					g.setColor(c);
-					for (int k = 0; k < scaleHeight; k++) {
-						for (int l = 0; l < scaleWidth; l++) {
-							g.fillRect(j*scaleWidth+l, i*scaleHeight+k, 1, 1);							
-						}
-					}
-				}
-			}
-		}
-        g.setColor(Color.BLACK);
-        for (int i = 0; i < height; i++) {
-        	g.fillRect(0, i*scaleHeight, width*scaleWidth, 1);
-		}
-        g.fillRect(0, height*scaleHeight, width*scaleWidth, 1);
+        try{
+        	// define the position
+        	for (int i = 0; i < height; i++) {
+        		for (int j = 0; j < width; j++) {
+        			if (i < chart.size() && j < chart.get(i).size() && chart.get(i).get(j) != -1){
+        				Color c = colorList.get(chart.get(i).get(j));
+        				g.setColor(c);
+        				for (int k = 0; k < scaleHeight; k++) {
+        					for (int l = 0; l < scaleWidth; l++) {
+        						g.fillRect(j*scaleWidth+l, i*scaleHeight+k, 1, 1);							
+        					}
+        				}
+        			}
+        		}
+        	}
+        	g.setColor(Color.BLACK);
+        	for (int i = 0; i < height; i++) {
+        		g.fillRect(0, i*scaleHeight, width*scaleWidth, 1);
+        	}
+        	g.fillRect(0, height*scaleHeight, width*scaleWidth, 1);
+        }
+        catch (IndexOutOfBoundsException e){
+        	
+        }
         
     }
 
