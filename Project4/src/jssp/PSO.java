@@ -26,18 +26,28 @@ public class PSO {
 	
 	public void run(){
 		int iterations = 0;
-		System.out.println(HelpMethods.percentageOfOptimal(filename, sworm));
+		long startTime = System.nanoTime();
+		globalBestParticle = HelpMethods.findBestParticle(sworm);
 		while (HelpMethods.percentageOfOptimal(filename, sworm) > 10){
+			for (Particle particle : sworm) {
+				double random = Math.random();
+				if (random < VariablesPSO.multiTypeIndividualEnhancementSchemeRate){
+					HelpMethods.multiTypeIndividualEnhancementSchemeSimulatedAnnealing(particle, filename);					
+				}
+			}
 			globalBestParticle = HelpMethods.findBestParticle(sworm);
 			for (Particle particle : sworm) {
-				particle.updateParticle(iterations, globalBestParticle);
+				particle.updateParticle(iterations, globalBestParticle);				
 			}
-			if (iterations%100 == 0){
+			long endTime = System.nanoTime();
+			long duration = (long) ((endTime-startTime)/Math.pow(10, 9));
+			if (iterations%30 == 0){
 				String percentage = new DecimalFormat("##.##").format(HelpMethods.percentageOfOptimal(filename, sworm));
-				System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");				
+				System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution. Total duration: " + duration + " sec");				
 			}
 			iterations++;
 		}
+		globalBestParticle = HelpMethods.findBestParticle(sworm);
 		String percentage = new DecimalFormat("##.##").format(HelpMethods.percentageOfOptimal(filename, sworm));
 		System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");	
 		ArrayList<ArrayList<Integer>> chart = HelpMethods.encodeJobs(globalBestParticle.getOperationSequence(), di);
@@ -45,7 +55,7 @@ public class PSO {
 	}
 	
 	public static void main(String[] args) {
-		new PSO("1.txt");
+		new PSO("5.txt");
 	}
 
 }

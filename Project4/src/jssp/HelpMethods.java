@@ -22,9 +22,6 @@ public class HelpMethods {
 			Collections.shuffle(particleSequence);
 			sworm.add(new Particle(particleSequence, di));
 		}
-		for (Particle particle : sworm) {
-			System.out.println(particle.getOperationSequence());
-		}
 		return sworm;
 	}
 	
@@ -38,18 +35,28 @@ public class HelpMethods {
 				initialParticle.add(j+1);
 			}
 		}
-		while (foodSources.size() < VariablesPSO.swormSize){
+		while (foodSources.size() < VariablesBA.numberOfFoodSources){
 			ArrayList<Integer> particleSequence = (ArrayList<Integer>) initialParticle.clone();
 			Collections.shuffle(particleSequence);
 			foodSources.add(particleSequence);
-		}
-		for (ArrayList<Integer> foodSource : foodSources) {
-			System.out.println(foodSource);
 		}
 		return foodSources;
 	}
 	
 	public static ArrayList<Integer> generateSingleFoodSource(DataInput di){
+		int noOfMachines = di.getNoOfMachines();
+		int noOfJobs = di.getNoOfJobs();
+		ArrayList<Integer> initialParticle = new ArrayList<Integer>();
+		for (int i = 0; i < noOfMachines; i++) {
+			for (int j = 0; j < noOfJobs; j++) {
+				initialParticle.add(j+1);
+			}
+		}
+		Collections.shuffle(initialParticle);
+		return initialParticle;
+	}
+	
+	public static ArrayList<Integer> generateSingleWeights(DataInput di){
 		int noOfMachines = di.getNoOfMachines();
 		int noOfJobs = di.getNoOfJobs();
 		ArrayList<Integer> initialParticle = new ArrayList<Integer>();
@@ -79,14 +86,6 @@ public class HelpMethods {
 			nextSubTaskToDo[i] = 0;
 			durationSpentOnEachJob[i] = 0;
 		}
-//		System.out.println("Duration");
-//		for (ArrayList<Integer> dur : durationForJobs) {
-//			System.out.println(dur);
-//		}
-//		System.out.println("Machine");
-//		for (ArrayList<Integer> mac : machineForJobs) {
-//			System.out.println(mac);
-//		}
 		for (Integer subtask : operationSequence) {
 			int durationOfSubTask = durationForJobs.get(subtask-1).get(nextSubTaskToDo[subtask-1]);
 			int machineOfSubTask = machineForJobs.get(subtask-1).get(nextSubTaskToDo[subtask-1]);
@@ -104,10 +103,6 @@ public class HelpMethods {
 				durationSpentOnEachJob[subtask-1] = gantChart.get(machineOfSubTask).size();
 			}
 		}
-//		System.out.println("GanttChart");
-//		for (ArrayList<Integer> part : gantChart) {
-//			System.out.println(part);
-//		}
 		return gantChart;
 	}
 	
@@ -224,8 +219,7 @@ public class HelpMethods {
 	
 	public static int calculateFitnessValue(ArrayList<Integer> operationSequence, DataInput di){
 		ArrayList<ArrayList<Integer>> gantChart = HelpMethods.encodeJobs(operationSequence, di);
-		int fitnessValue = HelpMethods.findMaxlengthOfGanttChart(gantChart);
-		return fitnessValue;
+		return HelpMethods.findMaxlengthOfGanttChart(gantChart);
 	}
 	
 	public static double[] probabilityForEachFitness(ArrayList<Bee> bees, DataInput di){
@@ -241,7 +235,6 @@ public class HelpMethods {
 		}
 		for (int i = 0; i < fitnessValues.length; i++) {
 			double prob = (double) (fitnessValues[i])/(double)(sum);
-			System.out.println(prob);
 			probabilities[i] = prob;
 		}
 		for (int i = 1; i < probabilities.length; i++) {
@@ -250,8 +243,7 @@ public class HelpMethods {
 		return probabilities;
 	}
 	
-	public static void takeOutRandomSubtaskAndPlaceItInAtBestFeasible(Bee bee, DataInput di){
-		ArrayList<Integer> operationSequence = bee.getFoodSourceSequence();
+	public static void takeOutRandomSubtaskAndPlaceItInAtBestFeasible(ArrayList<Integer> operationSequence, DataInput di){
 		int randomSubtask = (int)(Math.random()*operationSequence.size());
 		int subtask = operationSequence.get(randomSubtask);
 		operationSequence.remove(randomSubtask);
@@ -377,6 +369,148 @@ public class HelpMethods {
 		opSeq.set(randomSwapIndex1, opSeq.get(randomSwapIndex2));
 		opSeq.set(randomSwapIndex2, tempValue);
 	}
+	
+	public static void multiTypeIndividualEnhancementSchemeSimulatedAnnealingBee(Bee bee, String filename){
+		double temperature = Math.abs(optimalFitnessValues(filename) - bee.getBestFitnessValue());
+		while (temperature > VariablesPSO.finalTemperature){
+			Bee newBee = new Bee(bee);
+			ArrayList<Double> newFoodSourceWeights = multiTypeIndividualEnhancementScheme(newBee.getFoodSourceWeights());
+			newBee.updateFoodSource(newFoodSourceWeights, newBee.getFoodSourceSequence());
+			newBee.setFoodSourceWeights(newFoodSourceWeights);
+			double deltaValue = newBee.getBestFitnessValue()-bee.getBestFitnessValue();
+			if (deltaValue > 0){
+				double randomProb = Math.random();
+				double minValue = 1;
+				if (Math.exp(-deltaValue/temperature) < 1){
+					minValue = Math.exp(-deltaValue/temperature);
+				}
+				if (randomProb < minValue){
+					bee.updateFoodSource(newFoodSourceWeights, bee.getFoodSourceSequence());
+					bee.setFoodSourceWeights(newFoodSourceWeights);
+				}
+			}
+			else{
+				bee.updateFoodSource(newFoodSourceWeights, bee.getFoodSourceSequence());
+				bee.setFoodSourceWeights(newFoodSourceWeights);
+				temperature *= VariablesPSO.beta;
+			}
+		}
+	}
+	
+	public static void multiTypeIndividualEnhancementSchemeSimulatedAnnealing(Particle particle, String filename){
+		double temperature = Math.abs(optimalFitnessValues(filename) - particle.getFitnessValue());
+		while (temperature > VariablesPSO.finalTemperature){
+			Particle newParticle = new Particle(particle);
+			ArrayList<Double> newPositions = multiTypeIndividualEnhancementScheme(newParticle.getPositions());
+			newParticle.updateSchedule();
+			newParticle.updateFitnessValue();
+			double deltaValue = newParticle.getFitnessValue()-particle.getFitnessValue();
+			if (deltaValue > 0){
+				double randomProb = Math.random();
+				double minValue = 1;
+				if (Math.exp(-deltaValue/temperature) < 1){
+					minValue = Math.exp(-deltaValue/temperature);
+				}
+				if (randomProb < minValue){
+					particle.setPositions(newPositions);
+					particle.updateSchedule();
+					particle.updateFitnessValue();
+				}
+			}
+			else{
+				particle.setPositions(newPositions);
+				particle.updateSchedule();
+				particle.updateFitnessValue();
+				temperature *= VariablesPSO.beta;
+			}
+		}
+	}
+	
+	public static ArrayList<Double> multiTypeIndividualEnhancementScheme(ArrayList<Double> positions){
+		double random = Math.random();
+		if (random < VariablesPSO.probSwappingRate){
+			randomSwap(positions);
+		}
+		else if (random < (VariablesPSO.probSwappingRate+VariablesPSO.probInsertionRate)){
+			insertion(positions);
+		}
+		else if (random < (VariablesPSO.probSwappingRate+VariablesPSO.probInsertionRate + VariablesPSO.probInversionRate)){
+			inversion(positions);
+		}
+		else{
+			longDistanceMovementOperation(positions);
+		}
+		return positions;
+	}
+	
+	public static void randomSwap(ArrayList<Double> positions){
+		int randomIndex1 = (int)(Math.random()*positions.size());
+		int randomIndex2 = (int)(Math.random()*positions.size());
+		while (randomIndex1 == randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		double tempValue = positions.get(randomIndex1);
+		positions.set(randomIndex1, positions.get(randomIndex2));
+		positions.set(randomIndex2, tempValue);
+	}
+	
+	public static void insertion(ArrayList<Double> positions){
+		int randomIndex1 = (int)(Math.random()*positions.size());
+		int randomIndex2 = (int)(Math.random()*positions.size());
+		while (randomIndex1 == randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		double tempValue = positions.get(randomIndex1);
+		positions.remove(randomIndex1);
+		positions.add(randomIndex2, tempValue);
+	}
+	
+	public static void inversion(ArrayList<Double> positions){
+		int randomIndex1 = (int)(Math.random()*positions.size()-1);
+		int randomIndex2 = (int)(Math.random()*positions.size());
+		while (randomIndex1 == randomIndex2 && randomIndex1 > randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		ArrayList<Double> temp = new ArrayList<Double>();
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			temp.add(positions.get(i));
+		}
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			positions.remove(randomIndex1);
+		}
+		int index = temp.size()-1;
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			positions.add(i, temp.get(index));
+			index--;
+		}
+	}
+	
+	public static void longDistanceMovementOperation(ArrayList<Double> positions){
+		int randomIndex1 = (int)(Math.random()*(positions.size()-2)) + 1;
+		int randomIndex2 = (int)(Math.random()*(positions.size()-randomIndex1)) + randomIndex1;
+		while (randomIndex1 == randomIndex2 && randomIndex1 > randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		int r = (int)(Math.random()*randomIndex1);
+		while (r >= randomIndex1){
+			r = (int)(Math.random()*randomIndex1);
+		}
+		ArrayList<Double> temp = new ArrayList<Double>();
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			temp.add(positions.get(i));
+		}
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			positions.remove(randomIndex1);
+		}
+		int index = 0;
+		
+		for (int i = r; i < r + temp.size(); i++) {
+			positions.add(i, temp.get(index));
+			index++;
+		}
+	}
+	
+	
 		
 
 }

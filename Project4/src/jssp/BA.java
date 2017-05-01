@@ -46,11 +46,11 @@ public class BA {
 	public void employedBeePhase(){
 		employedBees = new ArrayList<Bee>();
 		for (int i = 0; i < VariablesBA.numberOfFoodSources; i++) {
-			Bee employedBee = new Bee(foodSourcesOperationSequence.get(i), foodSourcesWeights.get(i));
+			Bee employedBee = new Bee(foodSourcesOperationSequence.get(i), foodSourcesWeights.get(i), di);
 			employedBees.add(employedBee);
 		}
 		for (Bee bee : employedBees) {
-			bee.exploreFood(foodSourcesWeights, di);
+			bee.exploreFood(foodSourcesWeights);
 		}
 	}
 	
@@ -62,6 +62,7 @@ public class BA {
 			for (int j = 0; j < probabilities.length; j++) {
 				if (random < probabilities[j]){
 					activeFoodSources.add(new Bee(employedBees.get(j)));
+					break;
 				}
 			}
 		}
@@ -71,66 +72,57 @@ public class BA {
 		int iterations = 0;
 		globalBestBee = HelpMethods.findBestBee(activeFoodSources);
 		int bestFitnessFound = Integer.MAX_VALUE;
-		while (HelpMethods.percentageOfOptimalBee(filename, activeFoodSources) > 10){
+		ArrayList<Integer> bestOperationSequenceFound = new ArrayList<Integer>();
+		long endTime = System.nanoTime();
+		long duration = (long) ((endTime-startTime)/Math.pow(10, 9));
+		while (HelpMethods.percentageOfOptimalBee(filename, activeFoodSources) > 10 || duration > 400){
 			long iterationTime = System.nanoTime();
 			globalBestBee = HelpMethods.findBestBee(activeFoodSources);
 			if (globalBestBee.getBestFitnessValue() < bestFitnessFound){
 				bestFitnessFound = globalBestBee.getBestFitnessValue();
+				bestOperationSequenceFound = globalBestBee.getFoodSourceSequence();
 			}
 			for (Bee bee : activeFoodSources) {
 				boolean foundImprovals = false;
-				long startTime2 = System.nanoTime();
 				for (int i = 0; i < VariablesBA.numberOfTrialsToFindBetterFood; i++) {
-					if (bee.exploreFood(foodSourcesWeights, di)){
+					if (bee.exploreFood(foodSourcesWeights)){
 						foundImprovals = true;
 						break;
 					}
 				}
-				long endTime2 = System.nanoTime();
-				long duration1 = (long) ((endTime2-startTime2)/Math.pow(10, 6));
-//				System.out.println("Explore food: " + duration1);
 				if (!foundImprovals){
 					double random = Math.random();
-					if (random < VariablesBA.insertAtBestFeasibleRate){
-						long startTime1 = System.nanoTime();
-						HelpMethods.takeOutRandomSubtaskAndPlaceItInAtBestFeasible(bee, di);
-						long endTime1 = System.nanoTime();
-						long duration = (long) ((endTime1-startTime1)/Math.pow(10, 6));
-//						System.out.println("Ran replacement: " + duration);
-					}
-					else if (random < (VariablesBA.insertAtBestFeasibleRate + VariablesBA.swapBasedTreeSearchRate)){
-						long startTime1 = System.nanoTime();
+					if (random < (VariablesBA.swapBasedTreeSearchRate)){
 						bee.setFoodSourceSequence(HelpMethods.treeSearchImprovedBeesAlgorithm(bee.getFoodSourceSequence(), di));
-						long endTime1 = System.nanoTime();
-						long duration = (long) ((endTime1-startTime1)/Math.pow(10, 6));
-//						System.out.println("Tree search: " + duration);
+					}
+					else if (random < VariablesBA.multiTypeIndividualEnhancementSchemeRate + VariablesBA.swapBasedTreeSearchRate){
+						HelpMethods.multiTypeIndividualEnhancementSchemeSimulatedAnnealingBee(bee, filename);
 					}
 					else{
-						if (bee != globalBestBee){
-							bee.setFoodSourceWeights(initialSingleFoodSourcePosition());
-							bee.setFoodSourceSequence(HelpMethods.generateSingleFoodSource(di));													
-						}
-						else{
-//							System.out.println("Before: " + HelpMethods.calculateFitnessValue(bee.getFoodSourceSequence(), di));
+						if (bee == globalBestBee){
 							bee.setFoodSourceSequence(HelpMethods.treeSearchImprovedBeesAlgorithm(bee.getFoodSourceSequence(), di));
-//							System.out.println("After: " + HelpMethods.calculateFitnessValue(bee.getFoodSourceSequence(), di));
 						}
 					}
 				}
 			}
 			iterations++;
 			if (iterations%1 == 0){
-				long endTime = System.nanoTime();
-				long duration = (long) ((endTime-startTime)/Math.pow(10, 9));
+				endTime = System.nanoTime();
+				duration = (long) ((endTime-startTime)/Math.pow(10, 9));
 				long iterationDuration = (long) ((endTime-iterationTime)/Math.pow(10, 9));
 				String percentage = new DecimalFormat("##.##").format(HelpMethods.percentageOfOptimalBee(filename, activeFoodSources));
 				System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution. Total duration: " + duration + " sec. It. dur: " + iterationDuration + " sec");				
 			}
 		}
 		globalBestBee = HelpMethods.findBestBee(activeFoodSources);
-		String percentage = new DecimalFormat("##.##").format(HelpMethods.percentageOfOptimalBee(filename, activeFoodSources));
-		System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");
-		new DrawGanttChart(HelpMethods.encodeJobs(globalBestBee.getFoodSourceSequence(), di), di);
+		if (globalBestBee.getBestFitnessValue() < bestFitnessFound){
+			bestFitnessFound = globalBestBee.getBestFitnessValue();
+			bestOperationSequenceFound = globalBestBee.getFoodSourceSequence();
+		}
+		int optimalFitness = HelpMethods.optimalFitnessValues(filename);
+		String percentage =  new DecimalFormat("##.##").format(((double)(bestFitnessFound)/(double)(optimalFitness)-1)*100);
+		System.out.println("Found a solution which is " + percentage + "% of optimal solution.");
+		new DrawGanttChart(HelpMethods.encodeJobs(bestOperationSequenceFound, di), di);
 	}
 	
 	public static void main(String[] args) {
