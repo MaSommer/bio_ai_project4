@@ -2,6 +2,7 @@ package jssp;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -165,8 +166,8 @@ public class HelpMethods {
 	public static int findBestFitnessValue(ArrayList<Particle> sworm){
 		int bestFitness = Integer.MAX_VALUE;
 		for (Particle particle : sworm) {
-			if (particle.getLocalBestFitnessValue() < bestFitness){
-				bestFitness = particle.getLocalBestFitnessValue();
+			if (particle.getFitnessValue() < bestFitness){
+				bestFitness = particle.getFitnessValue();
 			}
 		}
 		return bestFitness;
@@ -327,6 +328,56 @@ public class HelpMethods {
 		return bestOpSeq;
 	}
 	
+	public static ArrayList<Double> treeSearchImprovedBeesAlgorithmImproved(ArrayList<Double> positions, DataInput di){
+		int l = 1;
+		Queue<ArrayList<Double>> queue = new LinkedList<ArrayList<Double>>();
+		ArrayList<Double> bestPositions = (ArrayList<Double>) positions.clone();
+		int bestFitness = calculateFitnessValue(schedule(positions, di), di);
+		for (int i = 0; i < VariablesBA.numberOfDifferentLocationsCriticalBox; i++) {
+			ArrayList<Double> pos = (ArrayList<Double>) positions.clone();
+			swapTwoSubtasksImproved(pos);
+			queue.add(pos);
+			int fitness = calculateFitnessValue(schedule(pos, di), di);
+			if (fitness < bestFitness){
+				bestPositions = pos;
+				bestFitness = fitness;
+			}
+		}
+		while (l < VariablesBA.numberOfLevelsTreeSearch){
+			Queue<ArrayList<Double>> newQueue = treeSearchLoopImproved(queue, di);
+			for (ArrayList<Double> pos : newQueue) {
+				int fitness = calculateFitnessValue(schedule(pos, di), di);
+				if (fitness < bestFitness){
+					bestPositions = pos;
+					bestFitness = fitness;
+				}
+			}
+			l++;
+		}
+		return bestPositions;
+	}
+	
+	public static ArrayList<Integer> schedule(ArrayList<Double> positions, DataInput di){
+		ArrayList<Double> artificialPositions = (ArrayList<Double>) positions.clone();
+		ArrayList<Integer> opSeq = new ArrayList<Integer>();
+		for (int i = 0; i < positions.size(); i++) {
+			opSeq.add(-1);
+		}
+		Collections.sort(artificialPositions);
+
+		HashMap<Double, Integer> mapPositionToJob = new HashMap<Double, Integer>();
+		int jobCounter = 1;
+		for (int i = 0; i < artificialPositions.size(); i++) {
+			int job = jobCounter%di.getNoOfJobs() + 1;
+			mapPositionToJob.put(artificialPositions.get(i), job);
+			jobCounter++;
+		}
+		for (int i = 0; i < artificialPositions.size(); i++) {
+			opSeq.set(i, mapPositionToJob.get(positions.get(i)));
+		}
+		return opSeq;
+	}
+	
 	private static Queue<ArrayList<Integer>> treeSearchLoop(Queue<ArrayList<Integer>> queue, DataInput di){
 		for (int i = 0; i < VariablesBA.numberOfDifferentLocationsCriticalBox; i++) {
 			ArrayList<Integer> opsSeq = queue.poll();
@@ -359,6 +410,38 @@ public class HelpMethods {
 		return newQueue;
 	}
 	
+	private static Queue<ArrayList<Double>> treeSearchLoopImproved(Queue<ArrayList<Double>> queue, DataInput di){
+		for (int i = 0; i < VariablesBA.numberOfDifferentLocationsCriticalBox; i++) {
+			ArrayList<Double> pos = queue.poll();
+			for (int j = 0; j < VariablesBA.numberOfTraialsForEachSolution; j++) {
+				ArrayList<Double> newPos = (ArrayList<Double>) pos.clone();
+				swapTwoSubtasksImproved(newPos);
+				queue.add(newPos);
+			}
+		}
+		Queue<ArrayList<Double>> newQueue = new LinkedList<ArrayList<Double>>();
+		int worstOpSeqFitness = -Integer.MAX_VALUE;
+		ArrayList<Double> worstPos = null;
+		for (ArrayList<Double> pos : queue) {
+			int fitness = calculateFitnessValue(schedule(pos, di), di);
+			if (newQueue.size() < VariablesBA.numberOfDifferentLocationsCriticalBox){
+				newQueue.add(pos);
+				if (fitness > worstOpSeqFitness){
+					worstOpSeqFitness = fitness;
+					worstPos = pos;
+				}
+				continue;
+			}
+			else if (fitness < worstOpSeqFitness){
+				newQueue.remove(worstPos);
+				worstPos = pos;
+				worstOpSeqFitness = fitness;
+				newQueue.add(pos);
+			}
+		}
+		return newQueue;
+	}
+	
 	public static void swapTwoSubtasks(ArrayList<Integer> opSeq){
 		int randomSwapIndex1 = (int)(Math.random()*opSeq.size());
 		int randomSwapIndex2 = (int)(Math.random()*opSeq.size());
@@ -368,6 +451,17 @@ public class HelpMethods {
 		int tempValue = opSeq.get(randomSwapIndex1);
 		opSeq.set(randomSwapIndex1, opSeq.get(randomSwapIndex2));
 		opSeq.set(randomSwapIndex2, tempValue);
+	}
+	
+	public static void swapTwoSubtasksImproved(ArrayList<Double> pos){
+		int randomSwapIndex1 = (int)(Math.random()*pos.size());
+		int randomSwapIndex2 = (int)(Math.random()*pos.size());
+		while (randomSwapIndex1 == randomSwapIndex2){
+			randomSwapIndex2 = (int)(Math.random()*pos.size());
+		}
+		double tempValue = pos.get(randomSwapIndex1);
+		pos.set(randomSwapIndex1, pos.get(randomSwapIndex2));
+		pos.set(randomSwapIndex2, tempValue);
 	}
 	
 	public static void multiTypeIndividualEnhancementSchemeSimulatedAnnealingBee(Bee bee, String filename){
@@ -412,15 +506,11 @@ public class HelpMethods {
 					minValue = Math.exp(-deltaValue/temperature);
 				}
 				if (randomProb < minValue){
-					particle.setPositions(newPositions);
-					particle.updateSchedule();
-					particle.updateFitnessValue();
+					particle.setPositions((ArrayList<Double>) newPositions.clone());
 				}
 			}
 			else{
-				particle.setPositions(newPositions);
-				particle.updateSchedule();
-				particle.updateFitnessValue();
+				particle.setPositions((ArrayList<Double>) newPositions.clone());
 				temperature *= VariablesPSO.beta;
 			}
 		}
