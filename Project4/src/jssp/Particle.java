@@ -13,7 +13,7 @@ public class Particle {
 	private ArrayList<Double> positions;
 
 	private ArrayList<Double> localBestPositions;
-	private ArrayList<Double> localBestSequence;
+	private ArrayList<Integer> localBestSequence;
 	private ArrayList<Double> velocities;
 
 	private ArrayList<Integer> operationSequence;
@@ -35,7 +35,7 @@ public class Particle {
 			velocities.add(velocity);
 		}
 		this.localBestPositions = (ArrayList<Double>) positions.clone();
-		this.localBestSequence = (ArrayList<Double>) operationSequence.clone();
+		this.localBestSequence = (ArrayList<Integer>) operationSequence.clone();
 		updateSchedule();
 		updateFitnessValue();
 	}
@@ -46,7 +46,7 @@ public class Particle {
 		this.velocities = (ArrayList<Double>) another.positions.clone();
 		this.localBestFitnessValue = another.localBestFitnessValue;
 		this.localBestPositions = (ArrayList<Double>) another.localBestPositions.clone();
-		this.localBestSequence = (ArrayList<Double>) another.localBestSequence.clone();
+		this.localBestSequence = (ArrayList<Integer>) another.localBestSequence.clone();
 		this.fitnessValue = another.fitnessValue;
 		this.di = another.di;
 	}
@@ -86,8 +86,8 @@ public class Particle {
 		fitnessValue = HelpMethods.findMaxlengthOfGanttChart(gantChart);
 		if (fitnessValue < localBestFitnessValue){
 			localBestFitnessValue = fitnessValue;
-			localBestPositions = (ArrayList<Double>) positions.clone();
-			this.localBestSequence = (ArrayList<Double>) operationSequence.clone();
+			this.localBestPositions = (ArrayList<Double>) positions.clone();
+			this.localBestSequence = (ArrayList<Integer>) operationSequence.clone();
 		}
 	}
 	
@@ -112,12 +112,14 @@ public class Particle {
 		return localBestPositions;
 	}
 
-	public ArrayList<Double> getLocalBestSequence() {
+	public ArrayList<Integer> getLocalBestSequence() {
 		return localBestSequence;
 	}
 	
 	public void setPositions(ArrayList<Double> positions) {
 		this.positions = positions;
+		updateSchedule();
+		updateFitnessValue();
 	}
 
 	public void setVelocities(ArrayList<Double> velocities) {
@@ -126,6 +128,7 @@ public class Particle {
 
 	public void setOperationSequence(ArrayList<Integer> operationSequence) {
 		this.operationSequence = operationSequence;
+		updateFitnessValue();
 	}
 
 }
