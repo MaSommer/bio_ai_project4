@@ -247,6 +247,66 @@ public class HelpMethods {
 		}
 		return probabilities;
 	}
+	
+	public static ArrayList<Integer> generateGreedyOperationSequence(DataInput di){
+		ArrayList<ArrayList<Integer>> remainingJobs = new ArrayList<ArrayList<Integer>>();
+		ArrayList<Integer> operationSequence = new ArrayList<Integer>();
+		double currentTime = 0;
+		for(int i = 0 ; i < di.getNoOfJobs() ; i++){
+			ArrayList<Integer> jobsOnLineRemaining = new ArrayList<Integer>();
+			for(int j = 0 ; j < di.getNoOfMachines() ; j++){
+				jobsOnLineRemaining.add(i+1);
+			}
+			remainingJobs.add(jobsOnLineRemaining);
+		}
+		
+		for(int i = 0 ; i < di.getNoOfJobs()*di.getNoOfMachines() ; i++){
+			double best = 100000;
+			int firstIndex = -1;
+			int secondIndex = -1;
+			for(int j = 0 ; j < remainingJobs.size(); j++){
+				if(remainingJobs.get(j).size() == 0){
+					continue;
+				}
+				int jobNr = remainingJobs.get(j).get(0);
+				operationSequence.add(jobNr);
+				int fitness = HelpMethods.calculateFitnessValue(operationSequence, di);
+				operationSequence.remove(operationSequence.size() -1);
+				double addedTime = fitness - currentTime;
+				if(addedTime < best){
+					firstIndex = j;
+					secondIndex = 0;
+					best = addedTime;
+				}
+			}
+			int jobNr = remainingJobs.get(firstIndex).remove(0);
+			operationSequence.add(jobNr);
+			currentTime+=best;
+		}
+		System.out.println("Greedy sequence: " + operationSequence);
+		System.out.println("Greedy sequence fitness" + calculateFitnessValue(operationSequence, di));
+		return operationSequence;
+	}
+	
+	public static ArrayList<ArrayList<ArrayList<Double>>> generateInitialTransitions(DataInput di){
+		int greedyHeuristicLength = HelpMethods.calculateFitnessValue(HelpMethods.generateGreedyOperationSequence(di), di);
+		ArrayList<ArrayList<ArrayList<Double>>> transitionTable = new ArrayList<ArrayList<ArrayList<Double>>>();
+		for(int i = 0 ; i < di.getNoOfJobs() ; i++){
+			ArrayList<ArrayList<Double>> jobTransitions = new ArrayList<ArrayList<Double>>();
+			for(int j = 0 ; j < di.getNoOfMachines()+1 ; j++){
+				ArrayList<Double> transitions = new ArrayList<Double>();
+				for(int k = 0 ; k < di.getNoOfJobs()*di.getNoOfMachines() ; k++){
+					double initialValue =  ((double) VariablesANT.numberOfAnts/(double)greedyHeuristicLength);
+					transitions.add(initialValue);
+				}
+				jobTransitions.add(transitions);
+			}
+			transitionTable.add(jobTransitions);
+		}
+		return transitionTable;
+	}
+	
+	
 		
 
 }

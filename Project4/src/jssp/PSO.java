@@ -39,11 +39,15 @@ public class PSO {
 			iterations++;
 		}
 		String percentage = new DecimalFormat("##.##").format(HelpMethods.percentageOfOptimal(filename, sworm));
-		System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");				
+		System.out.println("After " + iterations + " the best found particle is " + percentage + "% of optimal solution.");
+		ArrayList<Integer> operationSequence = HelpMethods.findBestParticle(sworm).getOperationSequence();
+		ArrayList<ArrayList<Integer>> chart = HelpMethods.encodeJobs(operationSequence, di);
+		DrawGanttChart draw = new DrawGanttChart(chart, di);
+		System.out.println("Fitness: "+ HelpMethods.calculateFitnessValue(operationSequence, di));
 	}
 	
 	public static void main(String[] args) {
-		new PSO("5.txt");
+		new PSO("2.txt");
 	}
 
 }
