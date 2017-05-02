@@ -103,7 +103,7 @@ public class ACO {
 	}
 	
 	public static void main(String[] args) {
-		ACO aco = new ACO("2.txt");
+		ACO aco = new ACO("4.txt");
 		aco.run();
 	}
 
