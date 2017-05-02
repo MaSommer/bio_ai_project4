@@ -1,5 +1,6 @@
 package jssp;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class ACO {
@@ -10,6 +11,7 @@ public class ACO {
 	private double bestFitnessEver = Double.MAX_VALUE;
 	private ArrayList<ArrayList<ArrayList<Double>>> transitionTable;
 	private ArrayList<Double> firstActionTransition;
+	private String filename;
 	
 	
 	
@@ -17,6 +19,7 @@ public class ACO {
 		this.di = new DataInput(filename);
 		this.transitionTable = HelpMethods.generateInitialTransitions(di);
 		this.ants = new ArrayList<Ant>();
+		this.filename = filename;
 		for(int i = 0 ; i < VariablesANT.numberOfAnts ; i++){
 			ants.add(new Ant(di, transitionTable));
 			
@@ -93,17 +96,37 @@ public class ACO {
 	public void run() {
 		int iteration = 0;
 		while(iteration < VariablesANT.maxIterations){
+			iteration++;
 			createSolutions();
 			evaporate();
 			updatePheromones();
-			System.out.println("best: " + bestFitnessEver);
+			System.out.println("Best makespan after iteration " +iteration +":\t" + bestFitnessEver);
+			int acceptableValue = HelpMethods.acceptableFitnessValues(filename);
+			if((double) bestFitnessEver/(double) acceptableValue < 1.1){
+				ArrayList<ArrayList<Integer>> chart = HelpMethods.encodeJobs(bestOperationSequence, di);
+				DrawGanttChart gantt = new DrawGanttChart(chart, di);
+				System.out.println("Makespan:\t\t " + bestFitnessEver);
+				int optimalFitness = HelpMethods.optimalFitnessValues(filename);
+				System.out.println("Optimal makespan \t" + optimalFitness);
+				int acceptableFitness = HelpMethods.acceptableFitnessValues(filename);
+				System.out.println("Acceptable makespan:\t" + acceptableFitness);
+				System.out.println("\n\n");
+				double percentageOfOptimal = (((double) bestFitnessEver/(double)optimalFitness)-1)*100;
+				String percentageOfOpt = new DecimalFormat("##.##").format(percentageOfOptimal);
+				
+				double percentOfAcceptable = (((double) bestFitnessEver/(double)acceptableFitness)-1)*100;
+				String percentOfAcpt = new DecimalFormat("##.##").format(percentOfAcceptable);
+				System.out.println("Percent of optimal: \t" + percentageOfOpt+ "%");
+				System.out.println("Percent of acceptable: \t" + percentOfAcpt + "%");
+				break;
+			}
 		}
 		
 		System.out.println(bestFitnessEver);
 	}
 	
 	public static void main(String[] args) {
-		ACO aco = new ACO("4.txt");
+		ACO aco = new ACO("6.txt");
 		aco.run();
 	}
 

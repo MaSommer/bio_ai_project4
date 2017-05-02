@@ -220,6 +220,30 @@ public class HelpMethods {
 		}
 	}
 	
+	public static int acceptableFitnessValues(String filename){
+		if (filename.equals("1.txt")){
+			return 56;
+		}
+		else if (filename.equals("2.txt")){
+			return 1059;
+		}
+		else if (filename.equals("3.txt")){
+			return 1276;
+		}
+		else if (filename.equals("4.txt")){
+			return 1130;
+		}
+		else if (filename.equals("5.txt")){
+			return 1451;
+		}
+		else if (filename.equals("6.txt")){
+			return 979;
+		}
+		else{
+			return -1;
+		}
+	}
+	
 	public static int calculateFitnessValue(ArrayList<Integer> operationSequence, DataInput di){
 		ArrayList<ArrayList<Integer>> gantChart = HelpMethods.encodeJobs(operationSequence, di);
 		int fitnessValue = HelpMethods.findMaxlengthOfGanttChart(gantChart);
@@ -283,8 +307,7 @@ public class HelpMethods {
 			operationSequence.add(jobNr);
 			currentTime+=best;
 		}
-		System.out.println("Greedy sequence: " + operationSequence);
-		System.out.println("Greedy sequence fitness" + calculateFitnessValue(operationSequence, di));
+
 		return operationSequence;
 	}
 	
