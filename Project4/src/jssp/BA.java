@@ -79,7 +79,7 @@ public class BA {
 		int optimalFitness = HelpMethods.optimalFitnessValues(filename);
 		double percent = ((double)(bestFitnessFound)/(double)(optimalFitness)-1)*100;
 		
-		while (percent > 10 && duration < 400){
+		while (percent > 12 && duration < 400){
 			long iterationTime = System.nanoTime();
 			globalBestBee = HelpMethods.findBestBee(activeFoodSources);
 			if (globalBestBee.getBestFitnessValue() < bestFitnessFound){
@@ -137,7 +137,7 @@ public class BA {
 	}
 	
 	public static void main(String[] args) {
-		new BA("6.txt");
+		new BA("5.txt");
 	}
 	
 	 
