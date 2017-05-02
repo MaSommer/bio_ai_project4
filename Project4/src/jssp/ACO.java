@@ -126,7 +126,7 @@ public class ACO {
 	}
 	
 	public static void main(String[] args) {
-		ACO aco = new ACO("6.txt");
+		ACO aco = new ACO("5.txt");
 		aco.run();
 	}
 
