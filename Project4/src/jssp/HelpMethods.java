@@ -621,7 +621,6 @@ public class HelpMethods {
 			else{
 				particle.setOperationSequence2((ArrayList<Integer>) newPositions.clone());
 				workingAnt.setOperationSequence((ArrayList<Integer>) newPositions.clone());
-				System.out.println("Improved");
 				temperature *= VariablesANT.beta;
 			}
 		}
