@@ -79,7 +79,7 @@ public class BA {
 		int optimalFitness = HelpMethods.optimalFitnessValues(filename);
 		double percent = ((double)(bestFitnessFound)/(double)(optimalFitness)-1)*100;
 		
-		while (percent > 12 && duration < 400){
+		while (percent > 2 && duration < 300){
 			long iterationTime = System.nanoTime();
 			globalBestBee = HelpMethods.findBestBee(activeFoodSources);
 			if (globalBestBee.getBestFitnessValue() < bestFitnessFound){
@@ -133,13 +133,12 @@ public class BA {
 		}
 		String percentage =  new DecimalFormat("##.##").format(((double)(bestFitnessFound)/(double)(optimalFitness)-1)*100);
 		System.out.println("Found a solution which is " + percentage + "% of optimal solution.");
-		System.out.println(bestFitnessFound);
+		System.out.println("Fitness: " + bestFitnessFound);
 		new DrawGanttChart(HelpMethods.encodeJobs(bestOperationSequenceFound, di), di);
 	}
 	
 	public static void main(String[] args) {
 		new BA("3.txt");
-
 	}
 	
 	 
