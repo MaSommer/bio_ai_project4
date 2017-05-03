@@ -573,6 +573,8 @@ public class HelpMethods {
 		}
 	}
 	
+
+	
 	public static void multiTypeIndividualEnhancementSchemeSimulatedAnnealing(Particle particle, String filename){
 		double temperature = Math.abs(optimalFitnessValues(filename) - particle.getFitnessValue());
 		while (temperature > VariablesPSO.finalTemperature){
@@ -597,6 +599,33 @@ public class HelpMethods {
 			}
 		}
 	}
+	public static void multiTypeIndividualEnhancementSchemeACO(Ant particle, String filename){
+		double temperature = Math.abs(optimalFitnessValues(filename) - particle.getFitness());
+		Ant workingAnt = new Ant(particle);
+		while (temperature > VariablesPSO.finalTemperature){
+			Ant newParticle = new Ant(workingAnt);
+			ArrayList<Integer> newPositions = multiTypeIndividualEnhancementSchemeACO(newParticle.getOperationSequence());
+			newParticle.updateFitnessValue();
+			double deltaValue = newParticle.getFitness()-particle.getFitness();
+			if (deltaValue > 0){
+				double randomProb = Math.random();
+				double minValue = 1;
+				if (Math.exp(-deltaValue/temperature) < 1){
+					minValue = Math.exp(-deltaValue/temperature);
+				}
+				if (randomProb < minValue){
+					workingAnt.setOperationSequence((ArrayList<Integer>) newPositions.clone());
+					temperature*= VariablesANT.beta;
+				}
+			}
+			else{
+				particle.setOperationSequence2((ArrayList<Integer>) newPositions.clone());
+				workingAnt.setOperationSequence((ArrayList<Integer>) newPositions.clone());
+				System.out.println("Improved");
+				temperature *= VariablesANT.beta;
+			}
+		}
+	}
 	
 	public static ArrayList<Double> multiTypeIndividualEnhancementScheme(ArrayList<Double> positions){
 		double random = Math.random();
@@ -615,6 +644,23 @@ public class HelpMethods {
 		return positions;
 	}
 	
+	public static ArrayList<Integer> multiTypeIndividualEnhancementSchemeACO(ArrayList<Integer> positions){
+		double random = Math.random();
+		if (random < VariablesPSO.probSwappingRate){
+			randomSwapACO(positions);
+		}
+		else if (random < (VariablesPSO.probSwappingRate+VariablesPSO.probInsertionRate)){
+			insertionACO(positions);
+		}
+		else if (random < (VariablesPSO.probSwappingRate+VariablesPSO.probInsertionRate + VariablesPSO.probInversionRate)){
+			inversionACO(positions);
+		}
+		else{
+			longDistanceMovementOperationACO(positions);
+		}
+		return positions;
+	}
+	
 	public static void randomSwap(ArrayList<Double> positions){
 		int randomIndex1 = (int)(Math.random()*positions.size());
 		int randomIndex2 = (int)(Math.random()*positions.size());
@@ -622,6 +668,16 @@ public class HelpMethods {
 			randomIndex2 = (int)(Math.random()*positions.size());
 		}
 		double tempValue = positions.get(randomIndex1);
+		positions.set(randomIndex1, positions.get(randomIndex2));
+		positions.set(randomIndex2, tempValue);
+	}
+	public static void randomSwapACO(ArrayList<Integer> positions){
+		int randomIndex1 = (int)(Math.random()*positions.size());
+		int randomIndex2 = (int)(Math.random()*positions.size());
+		while (randomIndex1 == randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		int tempValue = positions.get(randomIndex1);
 		positions.set(randomIndex1, positions.get(randomIndex2));
 		positions.set(randomIndex2, tempValue);
 	}
@@ -636,6 +692,16 @@ public class HelpMethods {
 		positions.remove(randomIndex1);
 		positions.add(randomIndex2, tempValue);
 	}
+	public static void insertionACO(ArrayList<Integer> positions){
+		int randomIndex1 = (int)(Math.random()*positions.size());
+		int randomIndex2 = (int)(Math.random()*positions.size());
+		while (randomIndex1 == randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		int tempValue = positions.get(randomIndex1);
+		positions.remove(randomIndex1);
+		positions.add(randomIndex2, tempValue);
+	}
 	
 	public static void inversion(ArrayList<Double> positions){
 		int randomIndex1 = (int)(Math.random()*positions.size()-1);
@@ -644,6 +710,25 @@ public class HelpMethods {
 			randomIndex2 = (int)(Math.random()*positions.size());
 		}
 		ArrayList<Double> temp = new ArrayList<Double>();
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			temp.add(positions.get(i));
+		}
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			positions.remove(randomIndex1);
+		}
+		int index = temp.size()-1;
+		for (int i = randomIndex1; i < randomIndex2; i++) {
+			positions.add(i, temp.get(index));
+			index--;
+		}
+	}
+	public static void inversionACO(ArrayList<Integer> positions){
+		int randomIndex1 = (int)(Math.random()*positions.size()-1);
+		int randomIndex2 = (int)(Math.random()*positions.size());
+		while (randomIndex1 == randomIndex2 && randomIndex1 > randomIndex2){
+			randomIndex2 = (int)(Math.random()*positions.size());
+		}
+		ArrayList<Integer> temp = new ArrayList<Integer>();
 		for (int i = randomIndex1; i < randomIndex2; i++) {
 			temp.add(positions.get(i));
 		}
@@ -680,6 +765,31 @@ public class HelpMethods {
 			positions.add(i, temp.get(index));
 			index++;
 		}
+	}
+		
+		public static void longDistanceMovementOperationACO(ArrayList<Integer> positions){
+			int randomIndex1 = (int)(Math.random()*(positions.size()-2)) + 1;
+			int randomIndex2 = (int)(Math.random()*(positions.size()-randomIndex1)) + randomIndex1;
+			while (randomIndex1 == randomIndex2 && randomIndex1 > randomIndex2){
+				randomIndex2 = (int)(Math.random()*positions.size());
+			}
+			int r = (int)(Math.random()*randomIndex1);
+			while (r >= randomIndex1){
+				r = (int)(Math.random()*randomIndex1);
+			}
+			ArrayList<Integer> temp = new ArrayList<Integer>();
+			for (int i = randomIndex1; i < randomIndex2; i++) {
+				temp.add(positions.get(i));
+			}
+			for (int i = randomIndex1; i < randomIndex2; i++) {
+				positions.remove(randomIndex1);
+			}
+			int index = 0;
+			
+			for (int i = r; i < r + temp.size(); i++) {
+				positions.add(i, temp.get(index));
+				index++;
+			}
 
 	}
 	

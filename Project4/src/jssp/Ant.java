@@ -13,6 +13,16 @@ public class Ant {
 	private Random rn;
 	private double fitness;
 	
+	public Ant(Ant ant){
+		this.operationSequence = (ArrayList<Integer>) ant.operationSequence.clone();
+		this.fitness = ant.fitness;
+		this.di = ant.di;
+		this.transitionTable = ant.transitionTable;
+		this.jobsDone = ant.jobsDone;
+		this.firstActionTransition = ant.firstActionTransition;
+		this.rn = ant.rn;
+	}
+	
 	public Ant(DataInput di, ArrayList<ArrayList<ArrayList<Double>>> transitionTable) {
 		this.di = di;
 		this.transitionTable = transitionTable;
@@ -42,6 +52,19 @@ public class Ant {
 		return transitionTable;
 	}
 	
+	public void updateFitnessValue() {
+		this.fitness = HelpMethods.calculateFitnessValue(operationSequence, di);
+	}
+	
+	
+	public void setOperationSequence(ArrayList<Integer> operationSequence) {
+		this.operationSequence = operationSequence;
+	}
+	public void setOperationSequence2(ArrayList<Integer> operationSequence) {
+		this.operationSequence = operationSequence;
+		this.fitness = HelpMethods.calculateFitnessValue(operationSequence, di);
+	}
+
 	private ArrayList<Integer> getJobStatuses() {
 		ArrayList<Integer> statuses = new ArrayList<Integer>();
 		for(int i = 0 ; i < jobsDone.size(); i++){

@@ -133,11 +133,12 @@ public class BA {
 		}
 		String percentage =  new DecimalFormat("##.##").format(((double)(bestFitnessFound)/(double)(optimalFitness)-1)*100);
 		System.out.println("Found a solution which is " + percentage + "% of optimal solution.");
+		System.out.println(bestFitnessFound);
 		new DrawGanttChart(HelpMethods.encodeJobs(bestOperationSequenceFound, di), di);
 	}
 	
 	public static void main(String[] args) {
-		new BA("6.txt");
+		new BA("3.txt");
 	}
 	
 	 

@@ -49,7 +49,16 @@ public class ACO {
 	
 	private void updatePheromones() {
 		double bestFitness = Double.MAX_VALUE;
+		double bestFitness2 = Double.MAX_VALUE;
 		ArrayList<Integer> bestOperationSequence = null;
+		Ant bestAnt = null;
+		for(Ant ant : ants){
+			if(ant.getFitness() < bestFitness2){
+				bestAnt = ant;
+			}
+		}
+		
+		HelpMethods.multiTypeIndividualEnhancementSchemeACO(bestAnt, filename);
 		for(Ant ant : ants){
 			if(ant.getFitness() < bestFitness){
 				bestFitness = ant.getFitness();
@@ -102,7 +111,8 @@ public class ACO {
 			updatePheromones();
 			System.out.println("Best makespan after iteration " +iteration +":\t" + bestFitnessEver);
 			int acceptableValue = HelpMethods.acceptableFitnessValues(filename);
-			if((double) bestFitnessEver/(double) acceptableValue < 1.1){
+			int optimalValue = HelpMethods.optimalFitnessValues(filename);
+			if((double) bestFitnessEver/(double) optimalValue < 1.1){
 				ArrayList<ArrayList<Integer>> chart = HelpMethods.encodeJobs(bestOperationSequence, di);
 				DrawGanttChart gantt = new DrawGanttChart(chart, di);
 				System.out.println("Makespan:\t\t " + bestFitnessEver);

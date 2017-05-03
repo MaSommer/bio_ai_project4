@@ -6,5 +6,7 @@ public class VariablesANT {
 	public static double pheromoneImpact = 1;
 	public static int numberOfAnts = 20;
 	public static int maxIterations = 100;
+	
+	public static double beta = 0.97;
 
 }
